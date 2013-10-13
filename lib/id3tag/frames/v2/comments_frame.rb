@@ -9,11 +9,11 @@ module  ID3Tag
         end
 
         def description
-          @desciption ||= encoded_text_and_content_parts.first
+          @desciption ||= encoded_description
         end
 
         def text
-          @text ||= encoded_text_and_content_parts.last
+          @text ||= encoded_text
         end
 
         def content
@@ -22,16 +22,44 @@ module  ID3Tag
 
         private
 
-        def encoded_text_and_content_parts
-          @encoded_text_and_content_parts ||= encoded_text_and_content.split("\00",2)
+        def encoded_description
+          StringUtil::encode_with_guess(raw_description, destination_encoding, source_encoding)
         end
 
-        def encoded_text_and_content
-          raw_text_and_content.encode(destination_encoding, source_encoding)
+        def encoded_text
+          StringUtil::encode_with_guess(raw_text, destination_encoding, source_encoding)
         end
 
-        def raw_text_and_content
-          content_without_encoding_byte[3..-1]
+        def raw_description
+          raw_description_and_text_parts.first
+        end
+
+        def raw_text
+          raw_description_and_text_parts.last
+        end
+
+        def raw_description_and_text_parts
+          @raw_text_and_content_parts ||= raw_description_and_text_parts_parse
+        end
+
+        def raw_description_and_text_parts_parse
+          term = source_encoding_terminator
+          bom_guess = source_encoding_bom_guess
+          content = content_without_encoding_byte[3..-1]
+
+          offset = 0
+          loop do
+            i = content.index(term, offset)
+            # TODO: exception?
+            return ["", content] if i.nil?
+
+            # found aligned terminator
+            if i % term.length == 0
+              return [content[0...i], content[i+term.length..-1]]
+            end
+
+            offset += term.length
+          end
         end
 
         def get_language

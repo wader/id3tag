@@ -22,7 +22,7 @@ module  ID3Tag
             GenreFrame
           when /^T/
             TextFrame
-          when /^(COM|COMM)$/
+          when /^(COM|COMM|ULT|USLT)$/
             CommentsFrame
           when /^UFID$/
             UniqueFileIdFrame

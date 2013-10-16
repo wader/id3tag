@@ -57,7 +57,8 @@ module ID3Tag
 
     def get_v2_extended_header_size
       if v2_tag_header.extended_header?
-        SynchsafeInteger.decode(NumberUtil.convert_string_to_32bit_integer(v2_extended_header_size_bytes))
+        size = NumberUtil.convert_string_to_32bit_integer(v2_extended_header_size_bytes)
+        v2_tag_major_version_number == 4 ? SynchsafeInteger.decode(size) : size
       else
         0
       end

@@ -28,11 +28,13 @@ module  ID3Tag
         private
 
         def parts
-          @parts ||= encoded_content.split(StringUtil::NULL_BYTE, 2)
+          @parts ||= encoded_content.sub("\ufeff", "").split(StringUtil::NULL_BYTE, 2)
         end
 
         def encoded_content
           content_without_encoding_byte_and_language.encode(destination_encoding, source_encoding)
+        rescue Encoding::InvalidByteSequenceError => e
+          content_without_encoding_byte_and_language.encode(destination_encoding, Encoding::UTF_16LE)
         end
 
         def content_without_encoding_byte_and_language

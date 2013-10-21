@@ -21,7 +21,7 @@ module  ID3Tag
         private
 
         def encoded_content
-          content_without_encoding_byte.encode(destination_encoding, source_encoding)
+          content_without_encoding_byte.encode(destination_encoding, source_encoding, {:invalid => :replace, :replace => ""})
         end
 
         def source_encoding

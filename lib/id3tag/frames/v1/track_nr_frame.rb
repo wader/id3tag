@@ -8,7 +8,7 @@ module ID3Tag
          @id, @content = id, content
         end
 
-        def content
+        def content(options = {})
           @content.unpack(NumberUtil::FORMAT_FOR_8_BIT_SIGNED_INTEGER).first.to_s
         end
       end

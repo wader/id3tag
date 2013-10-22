@@ -11,7 +11,7 @@ module  ID3Tag
           @id, @raw_content, @flags, @major_version_number = id.to_sym, content, flags, major_version_number
         end
 
-        def content
+        def content(options = {})
           usable_content
         end
 

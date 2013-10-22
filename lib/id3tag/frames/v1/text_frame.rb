@@ -8,8 +8,8 @@ module ID3Tag
          @id, @content = id, content
         end
 
-        def content
-          @content.encode(destination_encoding, source_encoding)
+        def content(options = {})
+          @content.encode(destination_encoding, options[:source_encoding] || source_encoding)
         end
 
         private

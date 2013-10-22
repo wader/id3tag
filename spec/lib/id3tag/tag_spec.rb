@@ -12,43 +12,49 @@ describe ID3Tag::Tag do
 
     describe "#artist" do
       it "reads TPE1 or v1 artist" do
-        subject.should_receive(:get_frame_content).with(:TPE1, :artist).and_return('A')
-        subject.artist.should eq('A')
+        subject.should_receive(:get_frame).with(:TPE1)
+        subject.should_receive(:get_frame).with(:artist)
+        subject.artist
       end
     end
 
     describe "#title" do
       it "reads TIT2 or v1 title" do
-        subject.should_receive(:get_frame_content).with(:TIT2, :title).and_return('A')
-        subject.title.should eq('A')
+        subject.should_receive(:get_frame).with(:TIT2)
+        subject.should_receive(:get_frame).with(:title)
+        subject.title
       end
     end
 
     describe "#album" do
       it "reads TALB or v1 album" do
-        subject.should_receive(:get_frame_content).with(:TALB, :album).and_return('A')
-        subject.album.should eq('A')
+        subject.should_receive(:get_frame).with(:TALB)
+        subject.should_receive(:get_frame).with(:album)
+        subject.album
       end
     end
 
     describe "#year" do
       it "reads TDRC or v1 year" do
-        subject.should_receive(:get_frame_content).with(:TDRC, :year).and_return('A')
-        subject.year.should eq('A')
+        subject.should_receive(:get_frame).with(:TDRC)
+        subject.should_receive(:get_frame).with(:year)
+        subject.year
       end
     end
 
     describe "#track_nr" do
       it "reads TRCK or v1 track_nr" do
-        subject.should_receive(:get_frame_content).with(:TRCK, :track_nr).and_return('A')
-        subject.track_nr.should eq('A')
+        subject.should_receive(:get_frame).with(:TRCK)
+        subject.should_receive(:get_frame).with(:track_nr)
+        subject.track_nr
       end
     end
 
     describe "#genre" do
       it "reads TCON or v1 genre" do
-        subject.should_receive(:get_frame_content).with(:TCON, :genre).and_return('A')
-        subject.genre.should eq('A')
+        subject.should_receive(:get_frame).with(:TCON)
+        subject.should_receive(:get_frame).with(:genre)
+        subject.genre
       end
     end
   end
@@ -223,21 +229,24 @@ describe ID3Tag::Tag do
     subject { described_class.read(nil, :all) }
     let(:frame_1) { ID3Tag::Frames::V1::TextFrame.new(:some_id, 'some content') }
     let(:frame_2) { ID3Tag::Frames::V1::TextFrame.new(:some_other_id, 'some other content') }
+    let(:frame_no_bom_utf16le) { ID3Tag::Frames::V2::CommentsFrame.new(:no_bom_utf16le, "\x01engA\x00\x00\x00B\x00", "\x00\x00", 4) }
     context "with one ID as argument" do
       context "when frame with ID exists" do
         before :each do
+          subject.stub(:frame_id).with(:v1, :some_id) { :some_id }
           subject.stub(:get_frame).with(:some_id) { frame_1 }
         end
         it "should return frame" do
-          subject.get_frame_content(:some_id).should == 'some content'
+          subject.get_frame_content([[:v1, :some_id]], {}).should == 'some content'
         end
       end
       context "when frame with ID does not exists" do
         before :each do
+          subject.stub(:frame_id).with(:v1, :some_id) { :some_id }
           subject.stub(:get_frame).with(:some_id) { nil }
         end
         it "should return none" do
-          subject.get_frame_content(:some_id).should be_nil
+          subject.get_frame_content([[:v1, :some_id]], {}).should be_nil
         end
       end
     end
@@ -245,21 +254,52 @@ describe ID3Tag::Tag do
     context "with multiple ID as armguments" do
       context "when first one does exist" do
         before :each do
+          subject.stub(:frame_id).with(:v1, :some_id) { :some_id }
           subject.stub(:get_frame).with(:some_id) { frame_1 }
+          subject.stub(:frame_id).with(:v2, :some_other_id) { :some_other_id }
           subject.stub(:get_frame).with(:some_other_id) { frame_2 }
         end
         it "should return first existing frame's content" do
-          subject.get_frame_content(:some_id, :some_other_id).should eq 'some content'
+          subject.get_frame_content([[:v1, :some_id], [:v2, :some_other_id]], {}).should eq 'some content'
         end
       end
       context "when second exists" do
         before :each do
+          subject.stub(:frame_id).with(:v1, :some_id) { :some_id }
           subject.stub(:get_frame).with(:some_id) { nil }
+          subject.stub(:frame_id).with(:v2, :some_other_id) { :some_other_id }
           subject.stub(:get_frame).with(:some_other_id) { frame_2 }
         end
         it "should return first existing frame's content" do
-          subject.get_frame_content(:some_id, :some_other_id).should eq 'some other content'
+          subject.get_frame_content([[:v1, :some_id], [:v2, :some_other_id]], {}).should eq 'some other content'
         end
+      end
+    end
+
+    context "with source enncoding option" do
+      context "broken comment frame with UTF-16LE but no BOM" do
+        before :each do
+          subject.stub(:frame_id).with(:v2, :no_bom_utf16le) { :no_bom_utf16le }
+          subject.stub(:get_frame).with(:no_bom_utf16le) { frame_no_bom_utf16le }
+        end
+        it "should return comment as UTF-8" do
+          subject.get_frame_content([[:v2, :no_bom_utf16le]], {:source_encoding => Encoding::UTF_16LE}).should eq 'B'
+        end
+      end
+    end
+  end
+
+  context "tag helpers with source encoding option" do
+    subject { described_class.read(nil) }
+    let(:frame_no_bom_utf16le) { ID3Tag::Frames::V2::CommentsFrame.new(:COMM, "\x01engA\x00\x00\x00B\x00", "\x00\x00", 4) }
+    before :each do
+      subject.stub(:frame_id).with(:v2, :comments) { :COMM }
+      subject.stub(:get_frame).with(:COMM) { frame_no_bom_utf16le }
+    end
+
+    describe "#comments" do
+      it "should return comment as UTF-8" do
+        subject.comments({:source_encoding => Encoding::UTF_16LE}).should eq 'B'
       end
     end
   end

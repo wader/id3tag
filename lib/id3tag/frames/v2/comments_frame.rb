@@ -8,16 +8,16 @@ module  ID3Tag
           @language ||= get_language
         end
 
-        def description
-          @desciption ||= encoded_text_and_content_parts.first
+        def description(options = {})
+          encoded_text_and_content_parts(options).first
         end
 
-        def text
-          @text ||= cut_at_null_byte(encoded_text_and_content_parts.last)
+        def text(options = {})
+          cut_at_null_byte(encoded_text_and_content_parts(options).last)
         end
 
-        def content
-          text
+        def content(options = {})
+          text(options)
         end
 
         def inspectable_content
@@ -26,12 +26,12 @@ module  ID3Tag
 
         private
 
-        def encoded_text_and_content_parts
-          @encoded_text_and_content_parts ||= encoded_text_and_content.split(NULL_BYTE)
+        def encoded_text_and_content_parts(options)
+          encoded_text_and_content(options).split(NULL_BYTE)
         end
 
-        def encoded_text_and_content
-          raw_text_and_content.encode(destination_encoding, source_encoding)
+        def encoded_text_and_content(options)
+          raw_text_and_content.encode(destination_encoding, options[:source_encoding] || source_encoding)
         end
 
         def raw_text_and_content

@@ -8,7 +8,7 @@ module ID3Tag
           @genres ||= get_genres
         end
 
-        def content
+        def content(options = {})
           genres.join(", ")
         end
 

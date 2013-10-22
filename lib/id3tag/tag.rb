@@ -12,36 +12,36 @@ module ID3Tag
       @source, @version = source, version
     end
 
-    def artist
-      get_frame_content(frame_id(:v2, :artist), frame_id(:v1, :artist))
+    def artist(options = {})
+      get_frame_content([[:v2, :artist], [:v1, :artist]], options)
     end
 
-    def title
-      get_frame_content(frame_id(:v2, :title), frame_id(:v1, :title))
+    def title(options = {})
+      get_frame_content([[:v2, :title], [:v1, :title]], options)
     end
 
-    def album
-      get_frame_content(frame_id(:v2, :album), frame_id(:v1, :album))
+    def album(options = {})
+      get_frame_content([[:v2, :album], [:v1, :album]], options)
     end
 
-    def year
-      get_frame_content(frame_id(:v2, :year), frame_id(:v1, :year))
+    def year(options = {})
+      get_frame_content([[:v2, :year], [:v1, :year]], options)
     end
 
-    def track_nr
-      get_frame_content(frame_id(:v2, :track_nr), frame_id(:v1, :track_nr))
+    def track_nr(options = {})
+      get_frame_content([[:v2, :track_nr], [:v1, :track_nr]], options)
     end
 
-    def genre
-      get_frame_content(frame_id(:v2, :genre), frame_id(:v1, :genre))
+    def genre(options = {})
+      get_frame_content([[:v2, :genre], [:v1, :genre]], options)
     end
 
-    def comments
-      get_frame_content(frame_id(:v2, :comments), frame_id(:v1, :comments))
+    def comments(options = {})
+      get_frame_content([[:v2, :comments], [:v1, :comments]], options)
     end
 
-    def unsychronized_transcription
-      get_frame_content(frame_id(:v2, :unsychronized_transcription))
+    def unsychronized_transcription(options = {})
+      get_frame_content([[:v2, :unsychronized_transcription]], options)
     end
 
     def get_frame(frame_id)
@@ -81,13 +81,13 @@ module ID3Tag
       end
     end
 
-    def get_frame_content(frame_id, *alt_frame_ids)
+    def get_frame_content(frame_ver_names, options)
       frame = nil
-      alt_frame_ids.unshift(frame_id).each do |frame_id|
-        frame = get_frame(frame_id)
+      frame_ver_names.each do |ver, name|
+        frame = get_frame(frame_id(ver, name))
         break if frame
       end
-      frame && frame.content
+      frame && frame.content(options)
     end
 
     private

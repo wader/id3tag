@@ -6,7 +6,7 @@ module  ID3Tag
           content_split_apart_by_null_byte.first
         end
 
-        def content
+        def content(options = {})
           content_split_apart_by_null_byte.last
         end
 

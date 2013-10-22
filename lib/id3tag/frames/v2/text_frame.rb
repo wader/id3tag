@@ -11,8 +11,8 @@ module  ID3Tag
           0b11 => Encoding::UTF_8
         }
 
-        def content
-          @content ||= cut_at_null_byte(content_without_encoding_byte.encode(destination_encoding, source_encoding))
+        def content(options = {})
+          @content ||= cut_at_null_byte(content_without_encoding_byte.encode(destination_encoding, options[:source_encoding] || source_encoding))
         end
 
         alias inspectable_content content
